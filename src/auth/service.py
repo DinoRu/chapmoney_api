@@ -1,5 +1,6 @@
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
-from sqlmodel.ext.asyncio.session import AsyncSession
+
 
 from src.auth.schemas import UserCreateModel
 from src.auth.utils import generate_passwd_hash
@@ -10,10 +11,8 @@ class UserService:
 
 	async def get_user_by_email(self, email: str, session: AsyncSession):
 		statement = select(User).where(User.email == email)
-		result = await session.exec(statement)
-
-		user = result.first()
-		return user
+		result = await session.execute(statement)
+		return result.scalar_one_or_none()
 
 	async def user_exist(self, email, session: AsyncSession):
 		user = await self.get_user_by_email(email, session)
@@ -28,7 +27,7 @@ class UserService:
 		new_user.role = "user"
 
 		session.add(new_user)
-
+		await session.refresh(new_user)
 		await session.commit()
 
 		return new_user

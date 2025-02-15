@@ -21,7 +21,7 @@ class User(SQLModel, table=True):
     update_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
     transactions: List['Transaction'] = Relationship(
         back_populates='user',
-        sa_relationship_args={'lazy': 'selectin'},
+        sa_relationship_kwargs={"lazy": "selectin"},
         cascade_delete=True
     )
 
@@ -34,7 +34,7 @@ class Currency(SQLModel, table=True):
     full_name: str
     countries: List['Country'] = Relationship(
         back_populates='currency',
-        sa_relationship_args={'lazy': 'selectin'},
+        sa_relationship_kwargs={'lazy': 'selectin'},
         cascade_delete=True
     )
 
@@ -46,16 +46,16 @@ class Country(SQLModel, table=True):
     name: str = Field(sa_column=Column(pg.VARCHAR, nullable=False, unique=True))
     code: str = Field(sa_column=Column(pg.VARCHAR(4), unique=True, nullable=False))
     flag: str
-    currency_code: str = Field(foreign_key='currencies.code')
+    currency_code: str = Field(foreign_key='currencies.code', ondelete='CASCADE')
     currency: Currency = Relationship(back_populates='countries')
     s_pays: List['SenderPay'] = Relationship(
         back_populates='country',
-        sa_relationship_args={'lazy': 'selectin'},
+        sa_relationship_kwargs={'lazy': 'selectin'},
         cascade_delete=True
     )
     r_pays: List['ReceiverPay'] = Relationship(
         back_populates='country',
-        sa_relationship_args={'lazy': 'selectin'},
+        sa_relationship_kwargs={'lazy': 'selectin'},
         cascade_delete=True
     )
 
@@ -63,8 +63,8 @@ class Country(SQLModel, table=True):
 class ExchangeRate(SQLModel, table=True):
     __tablename__ = 'exchange_rates'
     uid: uuid.UUID = Field(sa_column=Column(pg.UUID, nullable=False, primary_key=True, default=uuid.uuid4))
-    base_currency: str = Field(foreign_key="currencies.code", nullable=False)
-    target_currency: str = Field(foreign_key="currencies.code", nullable=False)
+    base_currency: str = Field(foreign_key="currencies.code", nullable=False, ondelete='CASCADE')
+    target_currency: str = Field(foreign_key="currencies.code", nullable=False, ondelete='CASCADE')
     rate: float
     updated_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
 
@@ -72,8 +72,8 @@ class ExchangeRate(SQLModel, table=True):
 class Fee(SQLModel, table=True):
     __tablename__ = 'fees'
     uid: uuid.UUID = Field(sa_column=Column(pg.UUID, nullable=False, primary_key=True, default=uuid.uuid4))
-    base_country: str = Field(foreign_key='countries.name', nullable=False)
-    target_country: str = Field(foreign_key='countries.name', nullable=False)
+    base_country: str = Field(foreign_key='countries.name', nullable=False, ondelete='CASCADE')
+    target_country: str = Field(foreign_key='countries.name', nullable=False, ondelete='CASCADE')
     fees: float
     updated_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
 
@@ -84,7 +84,7 @@ class SenderPay(SQLModel, table=True):
     s_name: str
     sender_name: str
     sender_phone: str
-    country_name: str = Field(foreign_key='countries.name', nullable=False)
+    country_name: str = Field(foreign_key='countries.name', nullable=False, ondelete='CASCADE')
     country: Country = Relationship(back_populates='s_pays')
 
 
@@ -92,13 +92,15 @@ class ReceiverPay(SQLModel, table=True):
     __tablename__ = 'r_payments'
     uid: uuid.UUID = Field(sa_column=Column(pg.UUID, nullable=False, primary_key=True, default=uuid.uuid4))
     r_name: str
-    country_name: str = Field(foreign_key="countries.name", nullable=False)
+    country_name: str = Field(foreign_key="countries.name", nullable=False, ondelete='CASCADE')
     country: Country = Relationship(back_populates='r_pays')
 
 
 class Transaction(SQLModel, table=True):
     __tablename__ = 'transactions'
     uid: uuid.UUID = Field(sa_column=Column(pg.UUID, nullable=False, primary_key=True, default=uuid.uuid4))
+    transaction_number: str = Field(sa_column=Column(pg.VARCHAR, unique=True, nullable=False),
+                                    default_factory=lambda: f"TXN-{uuid.uuid4().hex[:10].upper()}")
     amount: float
     amount_converted: float
     final_amount: float

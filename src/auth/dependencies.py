@@ -58,8 +58,8 @@ async def get_current_user(
 		token_details: dict = Depends(AccessTokenBearer()),
 		session: AsyncSession = Depends(get_session)
 ):
-	user_username = token_details["user"]["username"]
-	user = await user_service.get_user_by_username(user_username, session)
+	user_email = token_details["user"]["email"]
+	user = await user_service.get_user_by_email(user_email, session)
 	return user
 
 

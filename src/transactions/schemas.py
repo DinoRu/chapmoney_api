@@ -3,8 +3,6 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from src.auth.schemas import UserModel
-
 
 class Transaction(BaseModel):
 	uid: uuid.UUID
@@ -21,7 +19,7 @@ class Transaction(BaseModel):
 	updated_at: datetime
 
 class TransactionDetailModel(Transaction):
-	user: UserModel
+	user: "UserModel"
 
 
 class TransactionCreateModel(BaseModel):

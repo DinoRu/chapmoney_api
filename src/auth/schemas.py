@@ -11,8 +11,9 @@ class UserCreateModel(BaseModel):
 	first_name: str = Field(max_length=25)
 	last_name: str = Field(max_length=25)
 	email: str = Field(max_length=40)
-	phone_number: str = Field(max_length=15)
+	phone_number: str = Field(max_length=25)
 	password: str = Field(min_length=6)
+	role: str = 'user'
 
 	model_config = {
 		"json_schema_extra": {
@@ -22,6 +23,7 @@ class UserCreateModel(BaseModel):
 				"email": "johndoe123@gmail.com",
 				"phone_number": "+7 989 459 10 49",
 				"password": "testpass123",
+				"role": "user"
 			}
 		}
 	}
@@ -32,13 +34,16 @@ class UserModel(BaseModel):
 	email: str
 	first_name: str
 	last_name: str
+	phone_number: str
+	is_verified: bool
+	pin: str | None = Field(exclude=True)
 	password_hash: str = Field(exclude=True)
 	created_at: datetime
 	update_at: datetime
 
 
 class UserTransactionModel(UserModel):
-	transactions: List[Transaction]
+	transactions: List[Transaction] = []
 
 
 class UserLoginModel(BaseModel):

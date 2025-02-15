@@ -4,7 +4,7 @@ from fastapi import APIRouter, status, Depends, HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
 from fastapi.responses import JSONResponse
 
-from src.auth.dependencies import RoleChecker, RefreshTokenBearer, AccessTokenBearer
+from src.auth.dependencies import RoleChecker, RefreshTokenBearer, AccessTokenBearer, get_current_user
 from src.auth.schemas import EmailModel, UserCreateModel, UserLoginModel, UserTransactionModel, PasswordResetRequestModel, PasswordResetConfirmModel
 from src.auth.service import UserService
 from src.auth.utils import create_url_safe_token, decode_url_safe_token, verify_password, create_access_token, generate_passwd_hash
@@ -133,7 +133,8 @@ async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer(
 
 @auth_router.get("/me", response_model=UserTransactionModel)
 async def get_current_user(
-		user=Depends(get_session), _: bool = Depends(AccessTokenBearer())
+		user=Depends(get_current_user),
+		_: bool = Depends(role_checker)
 ):
 	return user
 
