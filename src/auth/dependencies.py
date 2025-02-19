@@ -72,7 +72,6 @@ class RoleChecker:
 			raise UserNotFound()
 		if current_user.role in self.allowed_roles:
 			return True
-
 		raise InsufficientPermission()
 
 

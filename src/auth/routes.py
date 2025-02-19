@@ -11,6 +11,7 @@ from src.auth.utils import create_url_safe_token, decode_url_safe_token, verify_
 from src.config import Config
 from src.db.main import get_session
 from src.errors import UserAlreadyExist, UserNotFound, InvalidCredentials, InvalidToken
+from src.mail import create_message, mail
 
 auth_router = APIRouter()
 user_service = UserService()
@@ -18,13 +19,19 @@ role_checker = RoleChecker(["admin", "user"])
 
 REFRESH_TOKEN_EXPIRY = 2
 
-# @auth_router.post("/send_mail")
-# async def send_mail(emails: EmailModel):
-# 	emails = emails.addresses
-#
-# 	html = "<h1>Welcome to the app</h1>"
-# 	subject = "Welcome to our app"
-# 	send_email.
+@auth_router.post("/send_mail")
+async def send_mail(emails: EmailModel):
+	emails = emails.addresses
+
+	html = "<h1>Welcome to the app</h1>"
+
+	message = create_message(
+		recipients=emails,
+		subject="Welcome",
+		body=html
+	)
+	await mail.send_message(message)
+	return {"message": "Email send successfully.."}
 
 
 @auth_router.post("/signup", status_code=status.HTTP_201_CREATED)
