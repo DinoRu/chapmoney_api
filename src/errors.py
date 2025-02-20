@@ -21,7 +21,6 @@ class UserNotFound(TransactionException): pass
 class AccountNotVerified(TransactionException): pass
 class InvalidTransaction(TransactionException): pass
 
-
 EXCEPTION_HANDLERS = {
     UserAlreadyExist: (status.HTTP_403_FORBIDDEN, "User with email already exists.", "user_exists"),
     UserNotFound: (status.HTTP_404_NOT_FOUND, "User not found.", "user_not_found"),

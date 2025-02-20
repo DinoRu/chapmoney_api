@@ -1,6 +1,6 @@
 from datetime import timedelta, datetime
 
-from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi import APIRouter, status, Depends, HTTPException, BackgroundTasks
 from sqlmodel.ext.asyncio.session import AsyncSession
 from fastapi.responses import JSONResponse
 
@@ -10,6 +10,7 @@ from src.auth.service import UserService
 from src.auth.utils import create_url_safe_token, decode_url_safe_token, verify_password, create_access_token, generate_passwd_hash
 from src.config import Config
 from src.db.main import get_session
+from src.db.redis import add_jti_to_blocklist
 from src.errors import UserAlreadyExist, UserNotFound, InvalidCredentials, InvalidToken
 from src.mail import create_message, mail
 
@@ -37,6 +38,7 @@ async def send_mail(emails: EmailModel):
 @auth_router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def create_user_account(
 		user_data: UserCreateModel,
+		bg_tasks: BackgroundTasks,
 		session: AsyncSession = Depends(get_session)
 ):
 	"""
@@ -61,18 +63,23 @@ async def create_user_account(
 		<p>Please click this <a href="{link}">link</a> to verify your email</p>
 	"""
 
-	emails = [email]
-
 	subject = "Verify your email"
+	message = create_message(
+		recipients=[email],
+		subject=subject,
+		body=html,
+	)
 
+	bg_tasks.add_task(mail.send_message, message)
+
+	# emails = [email]
 	# send_email.delay(emails, subject, html)
-
 	return {
 		"message": "Account Created! Check email to verify your account",
 		"user": new_user,
 	}
 
-@auth_router.post("/verify/{token}")
+@auth_router.get("/verify/{token}")
 async def verify_user_account(token: str, session: AsyncSession = Depends(get_session)):
 
 	token_data = decode_url_safe_token(token)
@@ -84,7 +91,9 @@ async def verify_user_account(token: str, session: AsyncSession = Depends(get_se
 		await user_service.update_user(user, {"is_verified": True}, session)
 
 		return JSONResponse(
-			content={"message": "Error occurred during verification"},
+			content={
+				"message": "Account verified successfully."
+			},
 			status_code=status.HTTP_200_OK,
 		)
 	return JSONResponse(
@@ -118,6 +127,7 @@ async def login_users(
 					"user_uid": str(user.uid),
 				},
 				refresh=True,
+				expiry=timedelta(seconds=REFRESH_TOKEN_EXPIRY)
 			)
 			return JSONResponse(
 				content={
@@ -149,9 +159,8 @@ async def get_current_user(
 @auth_router.get("/logout")
 async def revoke_token(token_details: dict = Depends(AccessTokenBearer())):
 	jti = token_details['jti']
-
 	# Add to redis black list
-	# await add_jti_to_blocklist(jti)
+	await add_jti_to_blocklist(jti)
 
 	return JSONResponse(
 		content={"message": "Logged Out Successfully"}, status_code=status.HTTP_200_OK
@@ -171,6 +180,13 @@ async def password_reset_request(email_data: PasswordResetRequestModel):
 	"""
 	subject = "Reset Your Password"
 
+	message = create_message(
+		recipients=[email],
+		subject=subject,
+		body=html_message
+	)
+
+	await mail.send_message(message)
 	#Send email
 	# send_email.delay([email], subject, html_message)
 	return JSONResponse(

@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str
     SECRET_KEY: str
     DOMAIN: str
-    REDIS_HOST: str = "redis://localhost:6379/0"
+    REDIS_URL: str = "redis://localhost:6379/0"
     MAIL_USERNAME: str
     MAIL_PASSWORD: str
     MAIL_FROM: str
@@ -25,6 +25,9 @@ class Settings(BaseSettings):
 
 Config = Settings()
 
+broker_url = Config.REDIS_URL
+backend_result = Config.REDIS_URL
+broke_connection_retry_on_startup = True
 
 
 

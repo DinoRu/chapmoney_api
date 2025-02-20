@@ -27,7 +27,6 @@ class UserService:
 		new_user.role = "user"
 
 		session.add(new_user)
-		await session.refresh(new_user)
 		await session.commit()
 
 		return new_user
@@ -38,5 +37,5 @@ class UserService:
 			setattr(user, k, v)
 
 		await session.commit()
-
+		await session.refresh(user)
 		return user

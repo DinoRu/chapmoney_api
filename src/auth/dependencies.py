@@ -10,7 +10,8 @@ from src.auth.service import UserService
 from src.auth.utils import decode_token
 from src.db.main import get_session
 from src.db.models import User
-from src.errors import InvalidToken, AccessTokenRequired, RefreshTokenRequired, UserNotFound, InsufficientPermission
+from src.db.redis import token_blocklist
+from src.errors import InvalidToken, AccessTokenRequired, RefreshTokenRequired, UserNotFound, InsufficientPermission, AccountNotVerified
 
 user_service = UserService()
 
@@ -27,8 +28,10 @@ class TokenBearer(HTTPBearer):
 		if not self.token_valid(token):
 			raise InvalidToken()
 
-		self.verify_token_data(token_data)
+		if await token_blocklist.get(token_data['jti']):
+			raise InvalidToken()
 
+		self.verify_token_data(token_data)
 		return token_data
 
 	def token_valid(self, token: str) -> bool:
@@ -68,8 +71,8 @@ class RoleChecker:
 		self.allowed_roles = allowed_roles
 
 	def __call__(self, current_user: User = Depends(get_current_user)) -> Any:
-		if not current_user:
-			raise UserNotFound()
+		if not current_user.is_verified:
+			raise AccountNotVerified()
 		if current_user.role in self.allowed_roles:
 			return True
 		raise InsufficientPermission()

@@ -23,7 +23,8 @@ def create_message(
         recipients: list[str], subject: str, body: str
 ):
     messages = MessageSchema(
-        recipients=recipients, subject=subject, body=body,
+        recipients=recipients,
+        subject=subject, body=body,
         subtype=MessageType.html
     )
 
