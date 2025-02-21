@@ -13,6 +13,7 @@ from src.db.main import get_session
 from src.db.redis import add_jti_to_blocklist
 from src.errors import UserAlreadyExist, UserNotFound, InvalidCredentials, InvalidToken
 from src.mail import create_message, mail
+from src.celery_tasks import send_email
 
 auth_router = APIRouter()
 user_service = UserService()
@@ -26,12 +27,8 @@ async def send_mail(emails: EmailModel):
 
 	html = "<h1>Welcome to the app</h1>"
 
-	message = create_message(
-		recipients=emails,
-		subject="Welcome",
-		body=html
-	)
-	await mail.send_message(message)
+	subject = 'Welcome to our app'
+	send_email.delay(emails, subject, html)
 	return {"message": "Email send successfully.."}
 
 
@@ -64,16 +61,8 @@ async def create_user_account(
 	"""
 
 	subject = "Verify your email"
-	message = create_message(
-		recipients=[email],
-		subject=subject,
-		body=html,
-	)
-
-	bg_tasks.add_task(mail.send_message, message)
-
-	# emails = [email]
-	# send_email.delay(emails, subject, html)
+	emails = [email]
+	send_email.delay(emails, subject, html)
 	return {
 		"message": "Account Created! Check email to verify your account",
 		"user": new_user,
@@ -179,16 +168,7 @@ async def password_reset_request(email_data: PasswordResetRequestModel):
 		<p>Please click this <a href="{link}">link</a> to Reset your Password</p>
 	"""
 	subject = "Reset Your Password"
-
-	message = create_message(
-		recipients=[email],
-		subject=subject,
-		body=html_message
-	)
-
-	await mail.send_message(message)
-	#Send email
-	# send_email.delay([email], subject, html_message)
+	send_email.delay([email], subject, html_message)
 	return JSONResponse(
 		content={
 			"message": "Please check your email for instructions to reset your password",
