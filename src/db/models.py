@@ -1,7 +1,10 @@
 import uuid
 from datetime import datetime
+from decimal import Decimal
 from typing import List, Optional
-from sqlmodel import SQLModel, Field, Column, Relationship
+
+from sqlalchemy import Index
+from sqlmodel import SQLModel, Field, Column, Relationship, DECIMAL
 import sqlalchemy.dialects.postgresql as pg
 
 
@@ -115,6 +118,15 @@ class Transaction(SQLModel, table=True):
     completed_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
     updated_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now, onupdate=datetime.now))
     user: User = Relationship(back_populates='transactions')
+
+
+class Rate(SQLModel, table=True):
+    __tablename__ = "rates"
+    __table_args__ = (Index('idx_currency', 'currency'),)
+    uid: uuid.UUID = Field(sa_column=Column(pg.UUID, nullable=False, primary_key=True, default=uuid.uuid4))
+    currency: str = Field(sa_column=Column(pg.VARCHAR, nullable=False, index=True))
+    rate: Decimal = Field(sa_column=Column(DECIMAL(precision=10, scale=4), nullable=False))
+
 
 
 
