@@ -107,22 +107,24 @@ class Transaction(SQLModel, table=True):
     sender_id: Optional[uuid.UUID] = Field(foreign_key='users.uid', nullable=False)
     transaction_number: str = Field(sa_column=Column(pg.VARCHAR, unique=True, nullable=False),
                                     default_factory=lambda: f"TXN-{uuid.uuid4().hex[:10].upper()}")
-    amount_sent: float = Field(sa_column=Column(pg.FLOAT, nullable=False))
-    source_country: str = Field(sa_column=Column(pg.VARCHAR, nullable=False))
-    amount_received: float = Field(sa_column=Column(pg.FLOAT, nullable=False))
-    destination_country: str = Field(sa_column=Column(pg.VARCHAR, nullable=False))
+    amount_sent: Decimal = Field(sa_column=Column(DECIMAL(precision=10, scale=4), nullable=False))
+    sender_country: str = Field(sa_column=Column(pg.VARCHAR, nullable=False))
+    sending_method: str = Field(sa_column=Column(pg.VARCHAR, nullable=False))
+    amount_received: Decimal = Field(sa_column=Column(DECIMAL(precision=10, scale=4), nullable=False))
+    recipient_country: str = Field(sa_column=Column(pg.VARCHAR, nullable=False))
     receiver_name: str = Field(sa_column=Column(pg.VARCHAR, nullable=False))
     receiver_number: str = Field(sa_column=Column(pg.VARCHAR, nullable=False))
-    payment_method: str = Field(sa_column=Column(pg.VARCHAR, nullable=False))
+    receiving_method: str = Field(sa_column=Column(pg.VARCHAR, nullable=False))
+    rate: Decimal = Field(sa_column=Column(DECIMAL(precision=10, scale=4), nullable=False))
     status: str = Field(sa_column=Column(pg.VARCHAR, nullable=False, default='Pending'))
-    completed_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
+    created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
     updated_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now, onupdate=datetime.now))
     user: User = Relationship(back_populates='transactions')
 
 
 class Rate(SQLModel, table=True):
     __tablename__ = "rates"
-    __table_args__ = (Index('idx_currency', 'currency'),)
+    __table_args__ = (Index('idx_currency', 'currency'), )
     uid: uuid.UUID = Field(sa_column=Column(pg.UUID, nullable=False, primary_key=True, default=uuid.uuid4))
     currency: str = Field(sa_column=Column(pg.VARCHAR, nullable=False, index=True))
     rate: Decimal = Field(sa_column=Column(DECIMAL(precision=10, scale=4), nullable=False))

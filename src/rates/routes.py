@@ -34,7 +34,6 @@ async def get_exchange_rates(session: AsyncSession = Depends(get_session)):
 	query = select(Rate).order_by(Rate.currency)
 	result = await session.execute(query)
 	rates = result.scalars().all()
-	print(rates)
 	return {
 		"response": "Success",
 		"base_code": "USD",
@@ -56,7 +55,7 @@ async def convert(
 			...,
 			gt=0,
 			title="Amount of money",
-			description="Amount of money that going to converted"
+			description="Amount of money to be converted"
 		),
 		rates: ExchangeRates = Depends(get_rate),
 		result: Decimal = Depends(convert_currencies)

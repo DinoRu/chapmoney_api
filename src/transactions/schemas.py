@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from decimal import Decimal
 
 from pydantic import BaseModel
 
@@ -17,6 +18,31 @@ class Transaction(BaseModel):
 	r_pay: str
 	created_at: datetime
 	updated_at: datetime
+
+
+class TransactionRequest(BaseModel):
+	sending_method: str
+	receiver_name: str
+	receiver_number: str
+	receiving_method: str
+
+
+class TransactionClientResponse(BaseModel):
+	uid: uuid.UUID
+	transaction_number: str
+	sender_country: str
+	recipient_country: str
+	amount_sent: Decimal
+	amount_received: Decimal
+	rate: Decimal
+	sending_method: str
+	receiver_name: str
+	receiver_number: str
+	receiving_method: str
+	status: str
+	created_at: datetime
+
+
 
 class TransactionDetailModel(Transaction):
 	user: "UserModel"

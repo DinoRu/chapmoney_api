@@ -19,6 +19,9 @@ class SenderPayService:
 		method_data_dict = method_data.model_dump(exclude_unset=True)
 
 		method = SenderPay(**method_data_dict)
+		session.add(method)
+
+		await session.commit()
 
 		return method
 
