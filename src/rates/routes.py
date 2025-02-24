@@ -7,7 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.main import get_session
 from src.db.models import Rate
-from src.rates.dependencies import get_rate, convert_currencies
+from src.rates.dependencies import get_rate, convert_currency
 from src.rates.schema import ExchangeRateRequest, ConvertResponseModel, ExchangeRates
 
 exchange_router = APIRouter()
@@ -58,7 +58,7 @@ async def convert(
 			description="Amount of money to be converted"
 		),
 		rates: ExchangeRates = Depends(get_rate),
-		result: Decimal = Depends(convert_currencies)
+		result: Decimal = Depends(convert_currency)
 ) -> Dict[str, Any]:
 	return {
 		"base": base,

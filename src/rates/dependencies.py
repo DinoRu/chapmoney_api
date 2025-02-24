@@ -68,3 +68,13 @@ async def convert_currencies(
 		ctx.prec = 2 * Config.DECIMAL_PRECISION
 		result = rate.quote * amount
 	return round(result, Config.DECIMAL_PRECISION)
+
+
+async def convert_currency(
+		amount: Decimal,
+		rate: ExchangeRates = Depends(get_rate)
+) -> Decimal:
+	with localcontext() as ctx:
+		ctx.prec = 2 * Config.DECIMAL_PRECISION
+		result = rate.quote * amount
+	return round(result, Config.DECIMAL_PRECISION)

@@ -18,6 +18,7 @@ class Transaction(BaseModel):
 	r_pay: str
 	created_at: datetime
 	updated_at: datetime
+	user: dict
 
 
 class TransactionRequest(BaseModel):
@@ -42,6 +43,23 @@ class TransactionClientResponse(BaseModel):
 	status: str
 	created_at: datetime
 
+
+class TransactionAdminResponse(BaseModel):
+	uid: uuid.UUID
+	transaction_number: str
+	sender_name: str
+	sender_number: str
+	sender_country: str
+	recipient_country: str
+	amount_sent: Decimal
+	amount_received: Decimal
+	rate: Decimal
+	sending_method: str
+	receiver_name: str
+	receiver_number: str
+	receiving_method: str
+	status: str
+	created_at: datetime
 
 
 class TransactionDetailModel(Transaction):
