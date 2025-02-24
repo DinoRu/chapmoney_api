@@ -12,13 +12,13 @@ class Transaction(BaseModel):
 	final_amount: float
 	base_country: str
 	target_country: str
-	s_pay: str
+
 	receiver_name: str
 	receiver_number: str
 	r_pay: str
 	created_at: datetime
 	updated_at: datetime
-	user: dict
+
 
 
 class TransactionRequest(BaseModel):

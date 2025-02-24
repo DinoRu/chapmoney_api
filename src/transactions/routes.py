@@ -4,6 +4,7 @@ from fastapi import APIRouter, status, Path, Depends, HTTPException
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.websocket_manager import websocket_manager
 from src.auth.dependencies import get_current_user
 from src.db.main import get_session
 from src.db.models import Transaction, User
@@ -74,6 +75,8 @@ async def create_transaction(
     session.add(new_transaction)
     await session.commit()
     await session.refresh(new_transaction)
+    await websocket_manager.send_to_admins(
+        f"Nouvelle transaction en attente: {new_transaction.amount_sent} {new_transaction.sender_country} de {user.first_name}")
 
     return TransactionClientResponse(
         uid=new_transaction.uid,
@@ -141,5 +144,7 @@ async def approve_transaction(
    transaction.status = "approved"
    await session.commit()
    await session.refresh(transaction)
+   await websocket_manager.send_to_client(str(transaction.sender_id),
+                                          f"Votre transaction de {transaction.amount_sent} {transaction.sender_country} a été approuvée!")
    return transaction
 

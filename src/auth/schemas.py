@@ -4,7 +4,7 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
-from src.transactions.schemas import Transaction
+from src.transactions.schemas import Transaction, TransactionClientResponse
 
 
 class UserCreateModel(BaseModel):
@@ -43,7 +43,7 @@ class UserModel(BaseModel):
 
 
 class UserTransactionModel(UserModel):
-	transactions: List[Transaction] = []
+	transactions: List[TransactionClientResponse] = []
 
 
 class UserLoginModel(BaseModel):

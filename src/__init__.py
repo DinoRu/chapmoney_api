@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
+from starlette.websockets import WebSocketDisconnect
 
 from src.auth.routes import auth_router
 from src.country.routes import country_router
@@ -9,16 +10,41 @@ from src.rates.routes import exchange_router
 from src.receive_payment_method.routes import r_method_router
 from src.send_payment_method.routes import sender_router
 from src.transactions.routes import T_router
+from src.websocket_manager import websocket_manager
 
 version = 'v1'
 app = FastAPI(
-	title="Chapmoney",
-	description="A REST API for CHAPMONEY service.",
-	version=version,
-	swagger_ui_parameters={
-		"persistAuthorization": True
-	},
+    title="Chapmoney",
+    description="A REST API for CHAPMONEY service.",
+    version=version,
+    swagger_ui_parameters={
+        "persistAuthorization": True
+    },
 )
+
+@app.websocket("/ws/admin")
+async def admin_websocket(websocket: WebSocket):
+    await websocket_manager.connect_admin(websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        websocket_manager.disconnect(websocket)
+
+
+@app.websocket("/ws/client/{user_id}")
+async def client_websocket(websocket: WebSocket, user_id: str):
+    await websocket_manager.connect_client(websocket, user_id)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        websocket_manager.disconnect(websocket)
+
+@app.get("/test")
+async def test():
+    await websocket_manager.send_to_admins("Test message")
+    return dict(message="Message sent to admins")
 
 app.include_router(auth_router, prefix=f"/api/{version}/auth", tags=['Auth'])
 app.include_router(currency_router, prefix=f"/api/{version}/currency", tags=['Currency'])

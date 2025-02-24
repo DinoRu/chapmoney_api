@@ -138,7 +138,7 @@ async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer(
 	raise InvalidToken
 
 @auth_router.get("/me", response_model=UserTransactionModel)
-async def get_current_user(
+async def get_me(
 		user=Depends(get_current_user),
 		_: bool = Depends(role_checker)
 ):
