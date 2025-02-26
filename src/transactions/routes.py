@@ -4,6 +4,9 @@ from fastapi import APIRouter, status, Path, Depends, HTTPException
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.fees.dependencies import get_fee_from_to
+from src.fees.schemas import FeeView
+from src.rates.schema import ExchangeRates
 from src.websocket_manager import websocket_manager
 from src.auth.dependencies import get_current_user
 from src.db.main import get_session
@@ -94,6 +97,19 @@ async def create_transaction(
         created_at=new_transaction.created_at
     )
 
+@T_router.get("/client/transactions/{user_uid}",
+              status_code=status.HTTP_200_OK,
+              response_model=list[TransactionClientResponse])
+async def get_client_transaction(
+        user: User = Depends(get_current_user),
+        session: AsyncSession = Depends(get_session)
+):
+    stmt = select(Transaction).where(Transaction.sender_id == user.uid)
+    result = await session.execute(stmt)
+    transactions = result.scalars().all()
+    return transactions
+
+
 
 @T_router.get(
     "/admin/transactions",
@@ -148,3 +164,36 @@ async def approve_transaction(
                                           f"Votre transaction de {transaction.amount_sent} {transaction.sender_country} a été approuvée!")
    return transaction
 
+
+@T_router.get("/calculate-transfer/{sender_country}/{recipient_country}/{amount}", status_code=status.HTTP_200_OK)
+async def calculate_transfer(
+        sender_country: str = Path(
+            ...,
+            title="Source country",
+            description="Source country to send."
+        ),
+        recipient_country: str = Path(
+            ...,
+            title="Target country",
+            description="Target country to receive."
+        ),
+        amount: Decimal = Path(
+            ...,
+            title="Amount to send",
+            description="Amount that you to send"
+        ),
+        session: AsyncSession = Depends(get_session)
+):
+    fee = await get_fee_from_to(sender_country, recipient_country, session)
+    rate = await get_rate_by_country(sender_country, recipient_country, session)
+    send_fee = amount * fee.fee
+    total_amount = amount + send_fee
+
+    converted_amount = amount * rate.quote
+
+    return {
+        "exchange_rate": rate.quote,
+        "send_fee": send_fee,
+        "total_amount_to_pay": total_amount,
+        "amount_received": converted_amount
+    }

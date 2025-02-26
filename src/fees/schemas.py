@@ -1,11 +1,12 @@
 import uuid
+from decimal import Decimal
 
 from pydantic import BaseModel
 
 class FeeModel(BaseModel):
 	base: str
 	to: str
-	fee: float
+	fee: Decimal
 
 
 class CreateFee(FeeModel):

@@ -38,6 +38,14 @@ async def create_fee(
 	new_fee = await fee_service.create_fee(fee_data, session)
 	return new_fee
 
+@fee_router.get("/{source_country}/{target_country}")
+async def get_fee_from_country(
+		source_country: str,
+		target_country: str,
+		session: AsyncSession = Depends(get_session)
+):
+	fee = await fee_service.get_fee_from_country(source_country, target_country, session)
+	return fee
 
 @fee_router.patch("/{fee_uid}",
 				  response_model=FeeView,

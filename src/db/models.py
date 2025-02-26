@@ -76,10 +76,12 @@ class ExchangeRate(SQLModel, table=True):
 
 class Fee(SQLModel, table=True):
     __tablename__ = 'fees'
+    __table_args__ = (Index('idx_base_to', 'base', 'to'),)
+
     uid: uuid.UUID = Field(sa_column=Column(pg.UUID, nullable=False, primary_key=True, default=uuid.uuid4))
     base: str = Field(foreign_key='countries.name', nullable=False, ondelete='CASCADE')
     to: str = Field(foreign_key='countries.name', nullable=False, ondelete='CASCADE')
-    fee: float = Field(sa_column=Column(pg.FLOAT, nullable=False))
+    fee: Decimal = Field(sa_column=Column(DECIMAL(precision=10, scale=2), nullable=False))
     updated_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
 
 
@@ -127,7 +129,7 @@ class Rate(SQLModel, table=True):
     __table_args__ = (Index('idx_currency', 'currency'), )
     uid: uuid.UUID = Field(sa_column=Column(pg.UUID, nullable=False, primary_key=True, default=uuid.uuid4))
     currency: str = Field(sa_column=Column(pg.VARCHAR, nullable=False, index=True))
-    rate: Decimal = Field(sa_column=Column(DECIMAL(precision=10, scale=4), nullable=False))
+    rate: Decimal = Field(sa_column=Column(DECIMAL(precision=10, scale=2), nullable=False))
 
 
 

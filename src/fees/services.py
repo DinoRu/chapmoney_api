@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -36,3 +37,15 @@ class FeeService:
 		await session.delete(fee)
 		await session.commit()
 		return {}
+
+	async def get_fee_from_country(self, source_country: str, target_country: str, session: AsyncSession):
+		stmt = select(Fee).where(Fee.base == source_country, Fee.to == target_country)
+		result = await session.execute(stmt)
+		fee = result.scalar_one_or_none()
+		if fee is None:
+			raise HTTPException(
+				status_code=404,
+				detail="Fee not found..."
+			)
+		print(fee)
+		return fee
