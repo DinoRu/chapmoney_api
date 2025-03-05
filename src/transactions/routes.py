@@ -5,8 +5,6 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.fees.dependencies import get_fee_from_to
-from src.fees.schemas import FeeView
-from src.rates.schema import ExchangeRates
 from src.websocket_manager import websocket_manager
 from src.auth.dependencies import get_current_user
 from src.db.main import get_session
@@ -79,7 +77,7 @@ async def create_transaction(
     await session.commit()
     await session.refresh(new_transaction)
     await websocket_manager.send_to_admins(
-        f"Nouvelle transaction en attente: {new_transaction.amount_sent} {new_transaction.sender_country} de {user.first_name}")
+        f"Novell transaction en attente: {new_transaction.amount_sent} {new_transaction.sender_country} de {user.first_name}")
 
     return TransactionClientResponse(
         uid=new_transaction.uid,
@@ -164,6 +162,17 @@ async def approve_transaction(
                                           f"Votre transaction de {transaction.amount_sent} {transaction.sender_country} a été approuvée!")
    return transaction
 
+
+@T_router.patch("/admin/transactions/{transaction_uid}/cancel")
+async def cancel_transaction(
+        session: AsyncSession = Depends(get_session),
+        transaction: Transaction = Depends(get_transaction)
+):
+    transaction.status = 'canceled'
+    await session.commit()
+    await session.refresh(transaction)
+
+    return transaction
 
 @T_router.get("/calculate-transfer/{sender_country}/{recipient_country}/{amount}", status_code=status.HTTP_200_OK)
 async def calculate_transfer(
