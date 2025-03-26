@@ -24,7 +24,7 @@ async def add_exchange_rate(data: ExchangeRateRequest, session: AsyncSession = D
 			rates = Rate(currency=currency, rate=rate)
 			session.add(rates)
 	await session.commit()
-	return {"message": "Taux ajoutés avec succès"}
+	return {"message": "Rate successfully added ☺️"}
 
 
 @exchange_router.get("/rates",

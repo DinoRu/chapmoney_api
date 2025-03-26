@@ -46,11 +46,9 @@ class Country(SQLModel, table=True):
     __tablename__ = "countries"
     uid: uuid.UUID = Field(sa_column=Column(pg.UUID, nullable=False, primary_key=True, default=uuid.uuid4))
     name: str = Field(sa_column=Column(pg.VARCHAR, nullable=False, unique=True))
-    code: str = Field(sa_column=Column(pg.VARCHAR(4), unique=True, nullable=False))
-    flag: str = Field(sa_column=Column(pg.VARCHAR, nullable=True))
+    code: str = Field(sa_column=Column(pg.VARCHAR(3), unique=True, nullable=False))
     currency_code: str = Field(foreign_key='currencies.code', ondelete='CASCADE')
     currency: Currency = Relationship(back_populates='countries')
-
 
     s_pays: List['SenderPay'] = Relationship(
         back_populates='country',

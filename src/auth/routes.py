@@ -70,7 +70,6 @@ async def create_user_account(
 
 @auth_router.get("/verify/{token}")
 async def verify_user_account(token: str, session: AsyncSession = Depends(get_session)):
-
 	token_data = decode_url_safe_token(token)
 	user_email = token_data.get("email")
 	if user_email:
@@ -128,6 +127,7 @@ async def login_users(
 			)
 	raise InvalidCredentials()
 
+
 @auth_router.get("/refresh_token")
 async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer())):
 	expiry_timestamp = token_details['exp']
@@ -136,6 +136,7 @@ async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer(
 		new_access_token = create_access_token(user_data=token_details['user'])
 		return JSONResponse(content={"access_token": new_access_token})
 	raise InvalidToken
+
 
 @auth_router.get("/me", response_model=UserTransactionModel)
 async def get_me(
@@ -175,6 +176,7 @@ async def password_reset_request(email_data: PasswordResetRequestModel):
 		},
 		status_code=status.HTTP_200_OK
 	)
+
 
 @auth_router.post("/password-reset-confirm/{token}")
 async def reset_account_password(
