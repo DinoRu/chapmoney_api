@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List
 
 from pydantic import BaseModel, Field
+from pydantic.v1 import EmailStr
 
 from src.transactions.schemas import Transaction, TransactionClientResponse
 
@@ -62,3 +63,8 @@ class PasswordResetRequestModel(BaseModel):
 class PasswordResetConfirmModel(BaseModel):
 	new_password: str
 	confirm_new_password: str
+
+
+
+class CreateUserModel(BaseModel):
+	email: EmailStr
